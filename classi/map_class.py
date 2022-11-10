@@ -12,7 +12,7 @@ import itertools
 
 from classi.route_class import RouteNN
 
-rng = np.random.default_rng()
+# # rng = np.random.default_rng()
 rng = np.random.default_rng(seed = 12345)
 
 
@@ -25,7 +25,7 @@ class Node:
         self.y = y
         
     def __repr__(self):
-        return f"{self.num} x:{self.x} y:{self.y}"
+        return f"node:{self.num} x:{self.x} y:{self.y}"
     
     def __eq__(self, other):
         if self.x == other.x and self.y == other.y:
@@ -46,10 +46,13 @@ class Edge:
         self.edge_len = node1.distance(node2)
         
     def __repr__(self):
-        return f"{self.num} 1:{self.node1} 2:{self.node2} edge_len = {self.edge_len: .2f}\n"
+        return f"edge:{self.num} {self.node1} {self.node2} edge_len={self.edge_len: .2f}\n"
     
-    def __gt__(self,other):
+    def __gt__(self, other):
         return self.edge_len > other.edge_len
+    
+    def __eq__(self, other):
+        return self.num == other.num
     
     def __contains__(self, node):
         if node == self.node1 or node == self.node2:
@@ -67,6 +70,7 @@ class Edge:
                       
 
 class Map:
+    
     
     def __init__(self, map_name, num_points, max_x, max_y):
         self.map_name = map_name
@@ -119,11 +123,14 @@ class Map:
         
         self.dist_mat = self.dist_mat + np.transpose(self.dist_mat)
           
-    def closest_neighbour(self, start_node):
-        self.route_NN = RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
-        self.NN_distance = self.route_NN.route_distance  
-        self.route_NN.plot_routes()
+    # def closest_neighbour(self, start_node):
+    #     self.route_NN = RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
+    #     self.NN_distance = self.route_NN.route_distance  
+    #     self.route_NN.plot_routes()
         
+    def closest_neighbour(self, start_node):
+        return RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
+    
         
     # def generate_MST(self):
     #     self.mst = MST(self.node_list, self.dist_mat, self.edge_list, start_node_index = 3)

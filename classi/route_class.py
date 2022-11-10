@@ -73,10 +73,61 @@ class Route:
             
             plt.plot(x_values, y_values)
         plt.show()
+      
+        
+    def MST_tree(self):
+        
+        MST_nodes = []
+        MST_edges = []
+        available_edges = self.edge_list.copy()
+        
+        #cerco l'edge + piccolo
+        
+        min_edge = min(self.edge_list)
+        
+        #attivo i 2 nodi dell'edge + piccolo
+        MST_nodes.extend([min_edge.node1, min_edge.node2])
+        MST_edges.append(min_edge)
+        available_edges.remove(min_edge)
+        
+        
+        #1)verifico che edge contengono i nodi attivi
+        
+        while len(MST_nodes) < len(self.node_list):
+            min_len = max(available_edges).edge_len
+            
+            for edge in available_edges:
+                for node in MST_nodes:
+                    if node in edge and edge.edge_len <= min_len:
+                        min_edge = edge
+                        min_len = min_edge.edge_len
+            
+            #di questi edge prendo quello che ha la lunghezza + piccola
+            MST_edges.append(min_edge)
+            available_edges.remove(min_edge)
+            min_node1 = min_edge.node1
+            min_node2 = min_edge.node2
+            
+             #aggiungo il nodo attivo e riparto da 1)
+            if min_node1 not in MST_nodes:
+                MST_nodes.append(min_node1)
+            else:
+                MST_nodes.append(min_node2)
+                
+        return MST_edges
+    
+    def plot_MST(self,MST_edges):
+        for edge in MST_edges:
+            x_values = [edge.node1.x, edge.node2.x]
+            y_values = [edge.node1.y, edge.node2.y]
+            
+            plt.plot(x_values, y_values)
+        plt.show()
+            
+       
+        
             
     
-        
-
 
 class RouteNN(Route):
     
@@ -85,16 +136,11 @@ class RouteNN(Route):
         
         self.route = super().nearest_neighbour_route()
         self.route_distance = super().get_route_distance()
+        self.MST_edges = super().MST_tree()
+        super().plot_MST(self.MST_edges)
         
          
-    
-class RouteMST(Route):
-    
-    def __init__(self, dist_mat, node_list, edge_list, start_node):
-        super().__init__(dist_mat, node_list, edge_list, start_node)
-        
-        self.route = super().nearest_neighbour_route()
-        self.route_distance = super().get_route_distance()
+
               
     
     
