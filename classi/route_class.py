@@ -18,6 +18,62 @@ class Route:
         self.node_list = node_list
         self.edge_list = edge_list
         self.start_node = start_node
+     
+        
+    def __str__(self):
+        start = self.start_node
+        dist = self.route_distance
+        return f"start node: {start}, distance: {dist}\n {self.route}"
+    
+    def __gt__(self, other):
+        return self.route_distance > other.route_distance 
+    
+    def __getitem__(self, node_position):
+        return self.route[node_position]
+    def nearest_neighbour_route(self):
+        already_visited_nodes = [self.start_node]
+        route = [self.start_node]
+        start_node = self.start_node
+        
+        while len(already_visited_nodes) < len(self.node_list):
+             
+              end_node = self.get_closest_node(start_node, already_visited_nodes) 
+              route.append(end_node)
+              already_visited_nodes.append(end_node)
+              start_node = end_node 
+             
+        return route
+    
+    def get_closest_node(self, start_node, avoid_visit_nodes):
+        for node in avoid_visit_nodes:
+            self.dist_mat[:,node.num] = 0
+            
+        row_num = start_node.num
+        row = self.dist_mat[row_num,:]
+        
+        minval = np.min(row[np.nonzero(row)])
+        min_index = np.where(row == minval)[0][0]
+        end_node = self.node_list[min_index]
+        
+        return end_node
+    
+    def get_route_distance(self):
+        distance = 0
+        iter_route = iter(self.route)
+        for node in iter_route:
+            distance +=  node.distance(next(iter_route))
+            
+        return distance
+        
+    def plot_routes(self):
+        for i in range(1, len(self.route)):
+            x_values = [self.route[i-1].x, self.route[i].x]
+            y_values = [self.route[i-1].y, self.route[i].y]
+            
+            plt.plot(x_values, y_values)
+        plt.show()
+            
+    
         
 
 
@@ -26,56 +82,25 @@ class RouteNN(Route):
     def __init__(self, dist_mat, node_list, edge_list, start_node):
         super().__init__(dist_mat, node_list, edge_list, start_node)
         
-        self.route_distance = self.nearest_neighbour()
+        self.route = super().nearest_neighbour_route()
+        self.route_distance = super().get_route_distance()
         
          
-    def __str__(self):
-        return (f"start_node: {self.start_node}, distance = {self.route_distance}")
     
-    def __gt__(self, other):
-        return self.route_distance > other.route_distance
-             
-    def nearest_neighbour(self):
-        nodi_visitati = 1
-        distance = 0
-        avoid_visit_nodes = [self.start_node]
-        self.route = [self.start_node]
-        
-        while nodi_visitati < len(self.node_list):
-             
-              end_node = RouteNN.get_closest_node(self.start_node, self.dist_mat,
-                                                self.node_list, avoid_visit_nodes) 
-              self.route.append(end_node)
-              avoid_visit_nodes.append(end_node)
-              distance +=  self.start_node.distance(end_node)
-              self.start_node = end_node
-              nodi_visitati += 1
-             
-        return distance
+class RouteMST(Route):
     
-    @staticmethod
-    def get_closest_node(start_node, dist_mat, node_list, avoid_visit_nodes):
+    def __init__(self, dist_mat, node_list, edge_list, start_node):
+        super().__init__(dist_mat, node_list, edge_list, start_node)
         
-        for node in avoid_visit_nodes:
-            dist_mat[:,node.num] = 0
-            
-        row_num = start_node.num
-        row = dist_mat[row_num,:]
-        
-        minval = np.min(row[np.nonzero(row)])
-        min_index = np.where(row == minval)[0][0]
-        
-        end_node = node_list[min_index]
-        return end_node
+        self.route = super().nearest_neighbour_route()
+        self.route_distance = super().get_route_distance()
+              
+    
+    
+    
         
              
-    def plot_routes(self):
-        for i in range(1, len(self.route)):
-            x_values = [self.route[i-1].x, self.route[i].x]
-            y_values = [self.route[i-1].y, self.route[i].y]
-            
-            plt.plot(x_values, y_values)
-        plt.show()
+    
      
         
 # class MST:
