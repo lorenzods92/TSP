@@ -30,6 +30,7 @@ class Route:
     
     def __getitem__(self, node_position):
         return self.route[node_position]
+    
     def nearest_neighbour_route(self):
         already_visited_nodes = [self.start_node]
         route = [self.start_node]
