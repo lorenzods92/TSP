@@ -32,6 +32,9 @@ class Node:
             return True
         return False
     
+    def __hash__(self):
+        return hash((self.num, self.x, self.y))
+    
     def distance(self, other):
         return math.sqrt((self.x - other.x)**2+(self.y - other.y)**2)
     
@@ -59,13 +62,23 @@ class Edge:
             return True
         return False
     
-    def nodes_inside_edge(self, node1, node2):
-        if node1 == self.node1 and node2 == self.node2:
-            return True
-        elif  node1 == self.node2 and node2 == self.node1:
+    def contains_nodes(self, list_of_nodes):
+        for node in list_of_nodes:
+            if node == self.node1 or node == self.node2:
+                return True 
+        return False
+    
+    def contains_exactly_one_node(self, list_of_nodes):
+        count = 0
+        for node in list_of_nodes:
+            if  node == self.node1 or node == self.node2:
+                count += 1
+        if count == 1:
             return True
         else:
             return False
+    
+
     
                       
 
@@ -78,7 +91,16 @@ class Map:
         self.map_max_x = max_x
         self.map_max_y = max_y
         self.node_list = []
-        
+    
+    @property
+    def num_points(self):
+        return self._num_points
+    
+    @num_points.setter
+    def num_points(self, value):
+        if value <= 0:
+            raise ValueError("num points must be > zero")
+        self._num_points = value
     
     def __len__(self):
         return len(self.node_list)

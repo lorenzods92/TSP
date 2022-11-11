@@ -60,9 +60,8 @@ class Route:
     
     def get_route_distance(self):
         distance = 0
-        iter_route = iter(self.route)
-        for node in iter_route:
-            distance +=  node.distance(next(iter_route))
+        for i in range(1, len(self.route)):
+            distance += self.route[i-1].distance(self.route[i])
             
         return distance
         
@@ -72,57 +71,52 @@ class Route:
             y_values = [self.route[i-1].y, self.route[i].y]
             
             plt.plot(x_values, y_values)
+        plt.title('Nearest Neighbour')
         plt.show()
       
         
     def MST_tree(self):
-        
         MST_nodes = []
         MST_edges = []
         available_edges = self.edge_list.copy()
         
-        #cerco l'edge + piccolo
-        
-        min_edge = min(self.edge_list)
-        
-        #attivo i 2 nodi dell'edge + piccolo
+        min_edge = min(available_edges)
         MST_nodes.extend([min_edge.node1, min_edge.node2])
         MST_edges.append(min_edge)
         available_edges.remove(min_edge)
         
-        
-        #1)verifico che edge contengono i nodi attivi
-        
         while len(MST_nodes) < len(self.node_list):
-            min_len = max(available_edges).edge_len
+            min_edge = max(available_edges)
             
             for edge in available_edges:
-                for node in MST_nodes:
-                    if node in edge and edge.edge_len <= min_len:
-                        min_edge = edge
-                        min_len = min_edge.edge_len
+                if edge.contains_exactly_one_node(MST_nodes) and edge.edge_len <= min_edge.edge_len:
+                    min_edge_len = edge.edge_len
+                    min_edge = edge
             
-            #di questi edge prendo quello che ha la lunghezza + piccola
             MST_edges.append(min_edge)
-            available_edges.remove(min_edge)
-            min_node1 = min_edge.node1
-            min_node2 = min_edge.node2
-            
-             #aggiungo il nodo attivo e riparto da 1)
-            if min_node1 not in MST_nodes:
-                MST_nodes.append(min_node1)
-            else:
-                MST_nodes.append(min_node2)
-                
-        return MST_edges
+            available_edges.remove(min_edge) 
+            MST_nodes.extend([min_edge.node1, min_edge.node2])
+            MST_nodes = list(set(MST_nodes))
+        
+        return MST_edges, MST_nodes
     
-    def plot_MST(self,MST_edges):
-        for edge in MST_edges:
+    
+    def plot_MST(self):
+        for edge in self.MST_edges:
             x_values = [edge.node1.x, edge.node2.x]
             y_values = [edge.node1.y, edge.node2.y]
             
             plt.plot(x_values, y_values)
+        plt.title('MST')
         plt.show()
+        
+    
+    def get_MST_distance(self):
+        distance = 0
+        for edge in self.MST_edges:
+            distance += edge.edge_len
+            
+        return distance
             
        
         
@@ -136,8 +130,9 @@ class RouteNN(Route):
         
         self.route = super().nearest_neighbour_route()
         self.route_distance = super().get_route_distance()
-        self.MST_edges = super().MST_tree()
-        super().plot_MST(self.MST_edges)
+        self.MST_edges, self.MST_nodes = super().MST_tree()
+        self.MST_distance = self.get_MST_distance()
+        # super().plot_MST(self.MST_edges)
         
          
 
@@ -150,59 +145,3 @@ class RouteNN(Route):
     
      
         
-# class MST:
-    
-#     def __init__(self, node_list, dist_mat, edge_list, start_node_index = 2):
-#         self.node_list = node_list.copy()
-#         self.dist_mat = dist_mat.copy()
-#         self.edge_list = edge_list.copy()
-#         self.start_node_index = start_node_index
-#         self.MST_edges = []
-#         self.MST_distance = 0
-#         self.get_MST()
-#         self.plot_MST_edges()
-        
-#     def get_MST(self):
-#         self.counter = 1
-#         node_A = self.node_list[self.start_node_index]
-#         self.already_visited_nodes = [node_A]
-#         node_B = Route.get_closest_node(node_A, self.dist_mat, self.node_list, 
-#                                         self.already_visited_nodes)
-        
-#         self.MST_distance += node_A.distance(node_B)
-#         self.MST_edges.append(Edge(self.counter,node_A, node_B))
-#         self.already_visited_nodes.append(node_B)
-#         self.explore_MST(node_A, node_B, self.already_visited_nodes)
-        
-#     def explore_MST(self, node_A, node_B, already_visited_nodes):
-        
-#         if len(already_visited_nodes) == len(self.node_list):
-#             return
-        
-#         node_sA = Route.get_closest_node(node_A, self.dist_mat, self.node_list, 
-#                                         self.already_visited_nodes)
-        
-#         node_sB = Route.get_closest_node(node_B, self.dist_mat, self.node_list, 
-#                                         self.already_visited_nodes)
-        
-#         if node_A.distance(node_sA) <= node_B.distance(node_sB):
-#             self.MST_distance += node_A.distance(node_sA)
-#             self.counter += 1
-#             self.MST_edges.append(Edge(self.counter,node_A, node_sA))
-#             self.already_visited_nodes.append(node_sA)
-#             node_A = node_sA
-#         else:
-#             self.MST_distance += node_B.distance(node_sB)
-#             self.counter += 1
-#             self.MST_edges.append(Edge(self.counter,node_B, node_sB))
-#             self.already_visited_nodes.append(node_sB)
-#             node_B = node_sB
-            
-#         self.explore_MST(node_A, node_B, self.already_visited_nodes)
-        
-#     def plot_MST_edges(self):
-#         for edge in self.MST_edges:
-#             x_values = [edge.node1.x, edge.node2.x]
-#             y_values = [edge.node1.y, edge.node2.y]
-#             plt.plot(x_values, y_values)
-#         plt.show()
