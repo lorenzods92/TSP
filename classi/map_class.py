@@ -10,7 +10,7 @@ import math
 import itertools
 
 
-from classi.route_class import RouteNN
+from classi.route_class import RouteNN, RouteGreedy
 
 # # rng = np.random.default_rng()
 rng = np.random.default_rng(seed = 12345)
@@ -23,9 +23,11 @@ class Node:
         self.num = num
         self.x = x
         self.y = y
+        self.connected_edges = []
+        self.connected_nodes = []
         
     def __repr__(self):
-        return f"node:{self.num} x:{self.x} y:{self.y}"
+        return f"node:{self.num} x:{self.x} y:{self.y} n_edges: {len(self.connected_edges)}"
     
     def __eq__(self, other):
         if self.x == other.x and self.y == other.y:
@@ -62,6 +64,10 @@ class Edge:
             return True
         return False
     
+    def __add__(self, other):
+        return self.edge_len + other.edge_len
+    
+    
     def contains_nodes(self, list_of_nodes):
         for node in list_of_nodes:
             if node == self.node1 or node == self.node2:
@@ -77,6 +83,11 @@ class Edge:
             return True
         else:
             return False
+        
+    def creates_a_cycle(self, list_of_nodes):
+        if self.node1 in list_of_nodes and self.node2 in list_of_nodes:
+            return True
+        return False
     
 
     
@@ -114,14 +125,21 @@ class Map:
         self.grid = np.column_stack((x_values, y_values))
         
     def plot_grid(self):
-        fig=plt.figure(1)
+        # fig=plt.figure(1)
+        fig, ax = plt.subplots()
+        x = self.grid[:,0]
+        y = self.grid[:,1]
         ax=fig.add_axes([0,0,1,1])
-        ax.scatter(self.grid[:,0], self.grid[:,1], color='r')
+        nodes_num = [i for i in range(0, len(self.grid[:,0]))]
+        ax.scatter(x, y, color='r')
+        for i in nodes_num:
+            ax.annotate(i, (x[i], y[i]))
         plt.show()
         
     def generate_nodes(self):
         x_values = self.grid[:,0]
         y_values = self.grid[:,1]
+        
         for i in range(self.num_points):
             self.node_list.append(Node(i, x_values[i], y_values[i] ))
             
@@ -144,18 +162,14 @@ class Map:
                     self.dist_mat[i,j] = node_start.distance(node_end)
         
         self.dist_mat = self.dist_mat + np.transpose(self.dist_mat)
-          
-    # def closest_neighbour(self, start_node):
-    #     self.route_NN = RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
-    #     self.NN_distance = self.route_NN.route_distance  
-    #     self.route_NN.plot_routes()
         
-    def closest_neighbour(self, start_node):
-        return RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
+    def closest_neighbour(self):
+        return RouteNN(self.dist_mat, self.node_list, self.edge_list) 
     
+    def greedy(self):
+        return RouteGreedy(self.dist_mat, self.node_list, self.edge_list) 
         
-    # def generate_MST(self):
-    #     self.mst = MST(self.node_list, self.dist_mat, self.edge_list, start_node_index = 3)
+   
         
         
     
