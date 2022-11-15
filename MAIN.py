@@ -25,12 +25,15 @@ distances = []
 routes = []
 
 
-route_NN = mappa1.closest_neighbour()
-route_NN.plot_routes(route_NN.best_NN_route)
+route_NN = mappa1.closest_neighbour(mappa1.node_list[0])
+route_NN.plot_routes(route_NN.route)
 route_NN.plot_MST()
 
-route_G = mappa1.greedy()
+route_G = mappa1.greedy(mappa1.node_list[0])
 route_G.plot_Greedy()
+
+print(f" NN: {route_NN.route_distance}")
+print(f" GREEDY: {route_G.route_distance}")
 
 
     

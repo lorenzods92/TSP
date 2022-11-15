@@ -11,14 +11,17 @@ import itertools
 import queue
 from collections import Counter
 
+from classi.map_class import Edge
+
 
 
 class Route:
     
-    def __init__(self, dist_mat, node_list, edge_list):
+    def __init__(self, dist_mat, node_list, edge_list, start_node):
         self.dist_mat = dist_mat.copy()
         self.node_list = node_list
         self.edge_list = edge_list
+        self.start_node = start_node
 
         
     def __str__(self):
@@ -43,7 +46,8 @@ class Route:
               route.append(end_node)
               already_visited_nodes.append(end_node)
               start_node = end_node 
-             
+        
+        route.append(route[0])
         return route
     
     def get_closest_node(self, start_node, avoid_visit_nodes, temp_dist_mat):
@@ -56,14 +60,12 @@ class Route:
         minval = np.min(row[np.nonzero(row)])
         min_index = np.where(row == minval)[0][0]
         end_node = self.node_list[min_index]
-        
         return end_node
     
     def get_route_distance(self, route):
         distance = 0
         for i in range(1, len(route)):
-            distance += route[i-1].distance(route[i])
-            
+            distance += route[i-1].distance(route[i])  
         return distance
         
     def plot_routes(self, route):
@@ -76,12 +78,14 @@ class Route:
         plt.show()
       
         
-    def MST_tree(self):
+    def MST_tree(self, start_node):
         MST_nodes = []
         MST_edges = []
         available_edges = self.edge_list.copy()
         
-        min_edge = min(available_edges)
+        available_edges_start_node = [edge for edge in available_edges if start_node in edge]
+        
+        min_edge = min(available_edges_start_node)
         MST_nodes.extend([min_edge.node1, min_edge.node2])
         MST_edges.append(min_edge)
         available_edges.remove(min_edge)
@@ -122,31 +126,27 @@ class Route:
 
 class RouteNN(Route):
     
-    def __init__(self, dist_mat, node_list, edge_list):
-        super().__init__(dist_mat, node_list, edge_list)
+    def __init__(self, dist_mat, node_list, edge_list, start_node):
+        super().__init__(dist_mat, node_list, edge_list, start_node)
         
-        NN_routes = []
-        for start_node in self.node_list:
-            route = super().nearest_neighbour_route(start_node)
-            route_distance = super().get_route_distance(route)
-            NN_routes.append([route, route_distance])
-            
-        self.best_NN_route = min(NN_routes, key = lambda x: x[1])[0]
-        self.NN_min_distance = min(NN_routes, key = lambda x: x[1])[1]
-            
-        self.MST_edges, self.MST_nodes = super().MST_tree()
+        
+        self.route = super().nearest_neighbour_route(start_node)
+        self.route_distance = super().get_route_distance(self.route)
+
+        self.MST_edges, self.MST_nodes = super().MST_tree(self.start_node)
         self.MST_distance = self.get_MST_distance()
         
 
 class RouteGreedy(Route):
     
-    def __init__(self, dist_mat, node_list, edge_list):
-        super().__init__(dist_mat, node_list, edge_list)
+    def __init__(self, dist_mat, node_list, edge_list, start_node):
+        super().__init__(dist_mat, node_list, edge_list, start_node)
         
-        self.greedy_edges, self.greedy_nodes = self.greedy_route()
+        self.greedy_edges, self.greedy_nodes = self.greedy_route(start_node)
+        self.route_distance = super().get_route_distance(self.greedy_nodes)
         
         
-    def greedy_route(self):
+    def greedy_route(self, start_node):
         greedy_nodes = []
         greedy_edges = []
         self.available_edges = sorted(self.edge_list.copy())
@@ -158,14 +158,10 @@ class RouteGreedy(Route):
         while edge_queue.empty() == False:
             
             edge = edge_queue.get()
-            print(edge)
-            # not edge.creates_a_cycle(greedy_nodes)
-            
+
             if (not RouteGreedy.edge_nodes_create_triple_fork(edge)
                 and not RouteGreedy.creates_a_cycle(edge, greedy_edges)):
-                
-        
-                
+
                 greedy_edges.append(edge)
                 edge.node1.connected_edges.append(edge)
                 edge.node2.connected_edges.append(edge)
@@ -174,9 +170,11 @@ class RouteGreedy(Route):
                     greedy_nodes.append(edge.node1)
                 if edge.node2 not in greedy_nodes:
                     greedy_nodes.append(edge.node2)
-                    
+         
+        last_node1, last_node2 = [node for node in greedy_nodes if len(node.connected_edges) == 1] 
+        greedy_edges.append(Edge(-1, last_node1,  last_node2))
        
-                
+        
         return greedy_edges, greedy_nodes   
     
     

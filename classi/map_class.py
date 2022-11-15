@@ -163,11 +163,11 @@ class Map:
         
         self.dist_mat = self.dist_mat + np.transpose(self.dist_mat)
         
-    def closest_neighbour(self):
-        return RouteNN(self.dist_mat, self.node_list, self.edge_list) 
+    def closest_neighbour(self, start_node):
+        return RouteNN(self.dist_mat, self.node_list, self.edge_list, start_node) 
     
-    def greedy(self):
-        return RouteGreedy(self.dist_mat, self.node_list, self.edge_list) 
+    def greedy(self, start_node):
+        return RouteGreedy(self.dist_mat, self.node_list, self.edge_list, start_node) 
         
    
         
