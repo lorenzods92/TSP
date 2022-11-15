@@ -13,7 +13,7 @@ import statistics
 np.random.seed(123)
 
 
-mappa1 = Map('mappa1', 5, 50, 50)
+mappa1 = Map('mappa1', 25, 50, 50)
 mappa1.generate_grid_random()
 mappa1.plot_grid()
 mappa1.generate_nodes()

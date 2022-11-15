@@ -161,8 +161,7 @@ class RouteGreedy(Route):
             print(edge)
             # not edge.creates_a_cycle(greedy_nodes)
             
-            if (len(edge.node1.connected_edges) < 2
-                and len(edge.node2.connected_edges) < 2
+            if (not RouteGreedy.edge_nodes_create_triple_fork(edge)
                 and not RouteGreedy.creates_a_cycle(edge, greedy_edges)):
                 
         
@@ -181,6 +180,12 @@ class RouteGreedy(Route):
         return greedy_edges, greedy_nodes   
     
     
+    def edge_nodes_create_triple_fork(edge):
+        if (len(edge.node1.connected_edges) >= 2 
+            or len(edge.node2.connected_edges) >= 2):
+            return True
+        return False
+    
     def plot_Greedy(self):
         for edge in self.greedy_edges:
             x_values = [edge.node1.x, edge.node2.x]
@@ -193,24 +198,30 @@ class RouteGreedy(Route):
         
     def creates_a_cycle(edge, greedy_edges):
         temp_greedy_edges = greedy_edges.copy()
-        temp_greedy_edges.append(edge)
+        # temp_greedy_edges.append(edge)
         start = edge.node1
+        end = edge.node2
         
-        return RouteGreedy.depthFirstTraversal(start, temp_greedy_edges)
+        return RouteGreedy.depthFirstTraversal(start, end, temp_greedy_edges)
     
-    def depthFirstTraversal(start, temp_greedy_edges):
+    def depthFirstTraversal(start, end, temp_greedy_edges):
         graph = RouteGreedy.create_graph(temp_greedy_edges)
+        if not graph:
+            return False
         stack = [start]
-        visited = [start]
+        visited = []
         while stack:
             current = stack.pop(-1)
+            visited.append(current)
             print(current)
+            if current not in graph:
+                return False
             for elem in graph[current]:
                 if elem not in visited:
                     stack.append(elem)
-                else:
-                    return False
-        return True
+                if elem == end:
+                    return True
+        return False
 
     
     @staticmethod
@@ -225,7 +236,7 @@ class RouteGreedy(Route):
             
             graph[edge.node1].append(edge.node2)
             graph[edge.node2].append(edge.node1)
-        
+        print(graph)
         return graph
            
           
